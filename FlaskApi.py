@@ -1,49 +1,49 @@
+import numpy as np
 from flask import Flask
 from flask_restful import Resource, Api, reqparse
-import pandas as pd
-import numpy as np
-import ast
 from joblib import load
 
 
 class Prediction(Resource):
-    def get(self):
+    def __init__(self) -> None:
+        super().__init__()
         # load the model from file
-        lgbr_cars_model = load("lgbr_cars.model")
-        
+        self.lgbr_cars_model = load("lgbr_cars.model")
+
+    def get(self):
         # create input array
         parser = reqparse.RequestParser()
-        parser.add_argument('vehicleType', required=True)
-        parser.add_argument('gearBox', required=True)
-        parser.add_argument('powerPS', required=True)
-        parser.add_argument('model', required=True)
-        parser.add_argument('kilometer', required=True)
-        parser.add_argument('monthOfRegistration', required=True)
-        parser.add_argument('fuelType', required=True)
-        parser.add_argument('brand', required=True)
+        parser.add_argument('vehicleType', required=True, type=int)
+        parser.add_argument('gearBox', required=True, type=int)
+        parser.add_argument('powerPS', required=True, type=int)
+        parser.add_argument('model', required=True, type=int)
+        parser.add_argument('kilometer', required=True, type=int)
+        parser.add_argument('monthOfRegistration', required=True, type=int)
+        parser.add_argument('fuelType', required=True, type=int)
+        parser.add_argument('brand', required=True, type=int)
 
         args = parser.parse_args()
 
-        vehicleType = args['vehicleType']
-        gearBox = args['gearBox']
-        powerPS = args['powerPS']
+        vehicle_type = args['vehicleType']
+        gear_box = args['gearBox']
+        power_PS = args['powerPS']
         model = args['model']
         kilometer = args['kilometer']
-        monthOfRegistration = args['monthOfRegistration']
-        fuelType = args['fuelType']
+        month_of_registration = args['monthOfRegistration']
+        fuel_type = args['fuelType']
         brand = args['brand']
-        
-        input = [vehicleType, gearBox, powerPS, model, 
-                kilometer, monthOfRegistration, fuelType, brand]
-        input = np.array(input, dtype=float)
+
+        input = [vehicle_type, gear_box, power_PS, model, 
+                kilometer, month_of_registration, fuel_type, brand]
+        input = np.array(input, dtype=int)
         
         # make a prediction
-        prediction = lgbr_cars_model.predict([input])[0]
+        prediction = self.lgbr_cars_model.predict([input])[0]
         
         # return the data
         return {'prediction': prediction}, 200
 
-app = Flask(__name__)
+app = Flask("CarPredictionApi")
 api = Api(app)
 api.add_resource(Prediction, '/prediction') 
 
